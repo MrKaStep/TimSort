@@ -59,8 +59,8 @@ void merge(FwdIt first, FwdIt middle, FwdIt last,
 }
 
 template<class FwdIt>
-void swapSegments(FwdIt a, FwdIt b, size_t size) {
-    for (size_t i = 0; i < size; ++i) {
+void swapSegments(FwdIt a, FwdIt b, ui32 size) {
+    for (ui32 i = 0; i < size; ++i) {
         std::iter_swap(a++, b++);
     }
 }
@@ -73,7 +73,9 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last) {
 template<class RandIt, class Compare>
 void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     typedef std::iterator_traits<RandIt>::value_type valueType;
-
+    ui32 length = last - first;
+    ui32 segmentLength;
+    for (segmentLength = 0;(segmentLength + 1) * (segmentLength + 1) <= 
 
 
 
