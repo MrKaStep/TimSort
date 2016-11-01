@@ -7,6 +7,11 @@ void selectionSort(BidirIt first, BidirIt last);
 template<class BidirIt, class Compare>
 void selectionSort(BidirIt first, BidirIt last, Compare comp);
 
+template<class BidirIt>
+void insertionSort(BidirIt first, BidirIt last);
+template<class BidirIt, class Compare>
+void insertionSort(BidirIt first, BidirIt last, Compare comp);
+
 template<class FwdIt>
 void merge(FwdIt first, FwdIt middle, FwdIt last,
            FwdIt buffer);
@@ -56,6 +61,25 @@ void selectionSort(BidirIt first, BidirIt last, Compare comp) {
     }
 }
 
+template<class BidirIt>
+void insertionSort(BidirIt first, BidirIt last) {
+    insertionSort(first, last,
+                  std::less<std::iterator_traits<BidirIt>::value_type>());
+}
+template<class BidirIt, class Compare>
+void insertionSort(BidirIt first, BidirIt last, Compare comp) {
+    typedef std::iterator_traits<BidirIt>::value_type valueType;
+    for (BidirIt toPush = std::next(first); toPush != last; ++toPush) {
+        valueType val = *toPush;
+        BidirIt cur = toPush;
+        while (cur != first && comp(val, *std::prev(cur))) {
+            *cur = *std::prev(cur);
+            --cur;
+        }
+        *cur = val;
+    }
+}
+
 template<class FwdIt>
 void merge(FwdIt first, FwdIt middle, FwdIt last,
            FwdIt buffer) {
@@ -95,7 +119,7 @@ template<class RandIt, class Compare>
 void sortSegments(RandIt first, RandIt last, ui32 length, Compare comp) {
     for (; first != last; first += length) {
         RandIt minimum = first;
-        for (RandIt it = first; it != last; ++it)
+        for (RandIt it = first; it != last; it += length)
             if (*it != *minimum && comp(*it, *minimum) ||
                 comp(it[length - 1], minimum[length - 1]))
                 minimum = it;
@@ -157,9 +181,9 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     while (toMerge != first) {
         RandIt mergeFirst = first + badSegmentLength <= toMerge ?
             toMerge - badSegmentLength : first;
-        merge(mergeFirst, 
-              toMerge, 
-              toMerge + badSegmentLength, 
+        merge(mergeFirst,
+              toMerge,
+              toMerge + badSegmentLength,
               badSegmentBegin,
               comp);
         toMerge = mergeFirst;
