@@ -120,8 +120,6 @@ void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
     sortSegments(first, lastSegmentBegin, length, comp);
 }
 
-
-
 template<class RandIt>
 void inplaceMerge(RandIt first, RandIt middle, RandIt last) {
     inplaceMerge(first, middle, last,

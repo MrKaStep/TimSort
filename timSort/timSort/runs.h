@@ -2,8 +2,8 @@
 
 template<class RandIt>
 class Run {
-    RandIt begin;
-    RandIt end;
+    RandIt first;
+    RandIt last;
 
 
 
