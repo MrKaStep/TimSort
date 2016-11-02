@@ -144,7 +144,7 @@ template<class RandIt, class Compare>
 void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
                      Compare comp) {
     ui32 segmentsCount = (last - first) / length;
-    if (middle >= first + length * segmentsCount)
+    if (std::distance(first, middle) <= static_cast<int>(length * segmentsCount))
         return;
     RandIt middleSegmentBegin = first + length * ((middle - first) / length);
     RandIt lastSegmentBegin = first + length * (segmentsCount - 1);
@@ -171,7 +171,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
         ++segmentLength;
     ui32 segmentsCount = totalLength / segmentLength;
 
-    if (middle < first + segmentLength * segmentsCount) {
+    if (std::distance(first, middle) < static_cast<int>(segmentLength * segmentsCount)) {
         reorderSegments(first, middle, last, segmentLength, comp);
         RandIt lastSegmentBegin = first + segmentLength * (segmentsCount - 1);
         for (ui32 i = 0; i + 2 < segmentsCount; ++i)
@@ -223,9 +223,9 @@ public:
 
 template<class RandIt, class Compare>
 RunsStack<RandIt, Compare>::RunsStack(Compare _comp) :
-        comp(_comp),
-        runs(),
-        last() {}
+    comp(_comp),
+    runs(),
+    last() {}
 template<class RandIt, class Compare>
 void RunsStack<RandIt, Compare>::addRun(RandIt first, ui32 length) {
     runs.emplace_back(first, length);
@@ -312,7 +312,7 @@ public:
 static const defaultTimSortParams DEFAULT;
 
 template<class RandIt>
-void timSort(RandIt first, RandIt last, 
+void timSort(RandIt first, RandIt last,
              const ITimSortParams& params = DEFAULT);
 template<class RandIt, class Compare>
 void timSort(RandIt first, RandIt last, Compare comp,
@@ -322,7 +322,7 @@ template<class RandIt>
 void timSort(RandIt first, RandIt last,
              const ITimSortParams& params) {
     timSort(first, last,
-            std::less<typename std::iterator_traits<RandIt>::value_type>(), 
+            std::less<typename std::iterator_traits<RandIt>::value_type>(),
             params);
 }
 
@@ -346,7 +346,7 @@ void timSort(RandIt first, RandIt last, Compare comp,
         }
         RandIt runEnd = current + 2;
         while (runEnd != last &&
-               (current + minrun > runEnd ||
+               (std::distance(current, runEnd) < static_cast<int>(minrun) ||
                 isSorted(runEnd - 2, runEnd - 1, runEnd, comp))) {
             ++runEnd;
         }
@@ -431,5 +431,11 @@ int main() {
     }
     delete[] arr;
     system("pause");
+
+
+
+
+
+
     return 0;
 }

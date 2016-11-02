@@ -149,7 +149,7 @@ void timSort(RandIt first, RandIt last, Compare comp,
         }
         RandIt runEnd = current + 2;
         while (runEnd != last &&
-               (current + minrun > runEnd ||
+               (std::distance(current, runEnd) < static_cast<int>(minrun) ||
                 isSorted(runEnd - 2, runEnd - 1, runEnd, comp))) {
             ++runEnd;
         }

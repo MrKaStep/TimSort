@@ -142,7 +142,7 @@ template<class RandIt, class Compare>
 void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
                      Compare comp) {
     ui32 segmentsCount = (last - first) / length;
-    if (middle >= first + length * segmentsCount)
+    if (std::distance(first, middle) <= static_cast<int>(length * segmentsCount))
         return;
     RandIt middleSegmentBegin = first + length * ((middle - first) / length);
     RandIt lastSegmentBegin = first + length * (segmentsCount - 1);
@@ -169,7 +169,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
         ++segmentLength;
     ui32 segmentsCount = totalLength / segmentLength;
 
-    if (middle < first + segmentLength * segmentsCount) {
+    if (std::distance(first, middle) < static_cast<int>(segmentLength * segmentsCount)) {
         reorderSegments(first, middle, last, segmentLength, comp);
         RandIt lastSegmentBegin = first + segmentLength * (segmentsCount - 1);
         for (ui32 i = 0; i + 2 < segmentsCount; ++i)

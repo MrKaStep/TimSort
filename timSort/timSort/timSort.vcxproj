@@ -112,6 +112,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />
