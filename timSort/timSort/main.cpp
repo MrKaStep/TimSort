@@ -112,7 +112,7 @@ void merge(FwdIt first, FwdIt middle, FwdIt last,
     FwdIt right = middle;
     FwdIt write = first;
     FwdIt buffLast = buffer + (middle - first);
-    while (write != last && left != buffLast && right != last)
+    while (left != buffLast && right != last)
         std::iter_swap(write++,
                        comp(*left, *right) ? left++ : right++);
     while (left != buffLast)
@@ -208,7 +208,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
               comp);
         toMerge = mergeFirst;
     }
-    selectionSort(badSegmentBegin, last);
+    selectionSort(badSegmentBegin, last, comp);
     return;
 }
 
@@ -344,9 +344,6 @@ bool isSorted(RandIt first, RandIt second, RandIt third, Compare comp) {
              comp(*second, *first) && comp(*second, *third));
 }
 
-int N = 100000;
-std::vector<int> v(N);
-
 template<class RandIt, class Compare>
 void timSort(RandIt first, RandIt last, Compare comp,
              const ITimSortParams& params) {
@@ -461,15 +458,14 @@ int main() {
         printf("%d ", arr[i]);
     }
     delete[] arr;
-    srand(time(NULL));
-    //for (int i = 1; i < 30; ++i) {
-    //    for (int j = 0; j < 100; ++j) {
-    //        std::vector<int> v(i);
-    //        for (int k = 0; k < i; ++k)
-    //            v[k] = (rand() << 16) | rand();
-    //        timSort(v.begin(), v.end(), std::less<int>(), myParams());
-    //        assert(std::is_sorted(v.begin(), v.end()));
-    //    }
-    //}
+    //srand(time(NULL));
+    //const int N = 17;
+    //std::vector<int> v(N), u(N);
+    //for (int i = 0; i < N; ++i)
+    //    u[i] = (rand() << 16) | rand(),
+    //    v[i] = i;
+    //auto cmp = [&u](int a, int b) {return u[a] < u[b]; };
+    //timSort(v.begin(), v.end(), cmp, myParams());
+    //assert(std::is_sorted(v.begin(), v.end(), cmp));
     return 0;
 }

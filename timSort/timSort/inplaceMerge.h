@@ -98,7 +98,7 @@ void merge(FwdIt first, FwdIt middle, FwdIt last,
     FwdIt right = middle;
     FwdIt write = first;
     FwdIt buffLast = buffer + (middle - first);
-    while (write != last && left != buffLast && right != last)
+    while (left != buffLast && right != last)
         std::iter_swap(write++,
                        comp(*left, *right) ? left++ : right++);
     while (left != buffLast)
@@ -185,7 +185,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     selectionSort(last - 2 * badSegmentLength, last, comp);
     RandIt toMerge = badSegmentBegin;
     while (toMerge != first) {
-        RandIt mergeFirst = std::distance(first, toMerge) <= static_cast<int>(badSegmentLength) ?
+        RandIt mergeFirst = std::distance(first, toMerge) >= static_cast<int>(badSegmentLength) ?
             toMerge - badSegmentLength : first;
         merge(mergeFirst,
               toMerge,
@@ -194,6 +194,6 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
               comp);
         toMerge = mergeFirst;
     }
-    selectionSort(badSegmentBegin, last);
+    selectionSort(badSegmentBegin, last, comp);
     return;
 }
