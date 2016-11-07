@@ -3,6 +3,18 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
+#include <map>
+#include <iostream>
+#include <time.h>
+
+
+/*
+ *
+ * GitHub link:
+ * https://github.com/MrKaStep/TimSort/tree/dev/timSort/timSort
+ *
+ */
+
 
 typedef unsigned int ui32;
 
@@ -128,7 +140,7 @@ void sortSegments(RandIt first, RandIt last, ui32 length, Compare comp) {
     for (; first != last; first += length) {
         RandIt minimum = first;
         for (RandIt it = first; it != last; it += length)
-            if (comp(*it, *minimum) || *it == *minimum &&
+            if (comp(*it, *minimum) || !comp(*minimum, *it) &&
                 comp(it[length - 1], minimum[length - 1]))
                 minimum = it;
         swapSegments(minimum, first, length);
@@ -144,7 +156,7 @@ template<class RandIt, class Compare>
 void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
                      Compare comp) {
     ui32 segmentsCount = (last - first) / length;
-    if (std::distance(first, middle) <= static_cast<int>(length * segmentsCount))
+    if (std::distance(first, middle) > static_cast<int>(length * segmentsCount))
         return;
     RandIt middleSegmentBegin = first + length * ((middle - first) / length);
     RandIt lastSegmentBegin = first + length * (segmentsCount - 1);
@@ -187,7 +199,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     selectionSort(last - 2 * badSegmentLength, last, comp);
     RandIt toMerge = badSegmentBegin;
     while (toMerge != first) {
-        RandIt mergeFirst = first + badSegmentLength <= toMerge ?
+        RandIt mergeFirst = std::distance(first, toMerge) >= static_cast<int>(badSegmentLength) ?
             toMerge - badSegmentLength : first;
         merge(mergeFirst,
               toMerge,
@@ -246,7 +258,7 @@ void RunsStack<RandIt, Compare>::mergeYZ() {
     assert(runs.size() > 2);
     inplaceMerge(runs[runs.size() - 3].first,
                  runs[runs.size() - 2].first,
-                 last,
+                 runs[runs.size() - 1].first,
                  comp);
     runs[runs.size() - 3].second += runs[runs.size() - 2].second;
     runs.erase(runs.end() - 2, runs.end() - 1);
@@ -290,21 +302,21 @@ public:
 
 class defaultTimSortParams : public ITimSortParams {
 public:
-    ui32 minRun(ui32 n) const {
+    virtual ui32 minRun(ui32 n) const {
         ui32 flag = 0;
         while (n >= 64)
             flag |= n & 1, n >>= 1;
         return n + flag;
     }
-    bool needMerge(ui32 lenX, ui32 lenY) const {
+    virtual bool needMerge(ui32 lenX, ui32 lenY) const {
         return lenY <= lenX;
     }
-    EWhatMerge whatMerge(ui32 lenX, ui32 lenY, ui32 lenZ) const {
+    virtual EWhatMerge whatMerge(ui32 lenX, ui32 lenY, ui32 lenZ) const {
         if (lenZ <= lenX + lenY)
             return lenX <= lenZ ? WM_MergeXY : WM_MergeYZ;
         return lenY <= lenX ? WM_MergeXY : WM_NoMerge;
     }
-    ui32 getGallop() const {
+    virtual ui32 getGallop() const {
         return 0;
     }
 };
@@ -331,6 +343,9 @@ bool isSorted(RandIt first, RandIt second, RandIt third, Compare comp) {
     return !(comp(*first, *second) && comp(*third, *second) ||
              comp(*second, *first) && comp(*second, *third));
 }
+
+int N = 100000;
+std::vector<int> v(N);
 
 template<class RandIt, class Compare>
 void timSort(RandIt first, RandIt last, Compare comp,
@@ -383,17 +398,22 @@ void timSort(RandIt first, RandIt last, Compare comp,
         runsStack.mergeXY();
 }
 
-#pragma warning(disable:4996)
-
 int *arr;
 
 bool cmp(const int &a, const int &b) {
     return arr[a] < arr[b];
 }
 
+class myParams : public defaultTimSortParams {
+    ui32 minRun(ui32 n) const {
+        return 1;
+    }
+};
+
 int main() {
-    //freopen("input.txt", "r", stdin);
-    //freopen("output.txt", "w", stdout);
+#pragma comment(linker, "/STACK:268435456")
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
     int n, *ind, *buff;
     scanf("%d", &n);
     ind = new int[n];
@@ -404,6 +424,16 @@ int main() {
         ind[i] = i;
     }
     timSort(ind, ind + n, cmp);
+    if (!(std::is_sorted(ind, ind + n, cmp))) {
+        std::cerr << n << '\n';
+        //std::cerr << "arr:\n";
+        //for (int i = 0; i<n; ++i)
+        //    std::cerr << arr[i] << ",\n";
+        std::cerr << "ind:\n";
+        for (int i = 0; i<n; ++i)
+            std::cerr << ind[i] << ",\n";
+        assert(std::is_sorted(ind, ind + n, cmp));
+    }
     int l = 0, r = 0, ansl, ansr;
     long long s = 0, ans = 0;
     while (r < n) {
@@ -425,17 +455,21 @@ int main() {
     }
     delete[] ind;
     timSort(arr, arr + ansr - ansl);
+    assert(std::is_sorted(arr, arr + ansr - ansl));
     delete[] buff;
     for (int i = 0; i < ansr - ansl; ++i) {
         printf("%d ", arr[i]);
     }
     delete[] arr;
-    system("pause");
-
-
-
-
-
-
+    srand(time(NULL));
+    //for (int i = 1; i < 30; ++i) {
+    //    for (int j = 0; j < 100; ++j) {
+    //        std::vector<int> v(i);
+    //        for (int k = 0; k < i; ++k)
+    //            v[k] = (rand() << 16) | rand();
+    //        timSort(v.begin(), v.end(), std::less<int>(), myParams());
+    //        assert(std::is_sorted(v.begin(), v.end()));
+    //    }
+    //}
     return 0;
 }

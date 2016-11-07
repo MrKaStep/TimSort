@@ -126,7 +126,7 @@ void sortSegments(RandIt first, RandIt last, ui32 length, Compare comp) {
     for (; first != last; first += length) {
         RandIt minimum = first;
         for (RandIt it = first; it != last; it += length)
-            if (comp(*it, *minimum) || *it == *minimum &&
+            if (comp(*it, *minimum) || !comp(*minimum, *it) &&
                 comp(it[length - 1], minimum[length - 1]))
                 minimum = it;
         swapSegments(minimum, first, length);
@@ -185,7 +185,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     selectionSort(last - 2 * badSegmentLength, last, comp);
     RandIt toMerge = badSegmentBegin;
     while (toMerge != first) {
-        RandIt mergeFirst = first + badSegmentLength <= toMerge ?
+        RandIt mergeFirst = std::distance(first, toMerge) <= static_cast<int>(badSegmentLength) ?
             toMerge - badSegmentLength : first;
         merge(mergeFirst,
               toMerge,
