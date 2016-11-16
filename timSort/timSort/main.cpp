@@ -17,7 +17,12 @@
  *
  */
 
+int *arr1, *arr2;
+
 int main() {
+    arr1 = new int[100000];
+    arr2 = new int[100000];
+
 
     return 0;
 }
