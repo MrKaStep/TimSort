@@ -2,7 +2,10 @@
 
 #include <functional>
 
+#ifndef UI32
+#define UI32
 typedef unsigned int ui32;
+#endif ///UI32
 
 template<class BidirIt>
 void selectionSort(BidirIt first, BidirIt last);

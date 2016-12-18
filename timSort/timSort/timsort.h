@@ -16,7 +16,6 @@ public:
 class defaultTimSortParams : public ITimSortParams {
 public:
     ui32 minRun(ui32 n) const {
-        return 1;
         ui32 flag = 0;
         while (n >= 64)
             flag |= n & 1, n >>= 1;
@@ -58,6 +57,49 @@ bool isSorted(RandIt first, RandIt second, RandIt third, Compare comp) {
              comp(*second, *first) && comp(*second, *third));
 }
 
+template<class RStack>
+void contractStack(RStack& runsStack, const ITimSortParams& params) {
+    while (runsStack.size() > 2) {
+        bool stop = false;
+        switch (params.whatMerge(runsStack.lenX(),
+                                 runsStack.lenY(),
+                                 runsStack.lenZ())) {
+        case WM_MergeXY:
+            runsStack.mergeXY();
+            break;
+        case WM_MergeYZ:
+            runsStack.mergeYZ();
+            break;
+        case WM_NoMerge:
+            stop = true;
+            break;
+        }
+        if (stop)
+            break;
+    }
+    if (runsStack.size() == 2 && params.needMerge(runsStack.lenX(),
+                                                    runsStack.lenY()))
+        runsStack.mergeXY();
+}
+
+template<class RandIt, class Compare>
+ui32 newRun(RandIt current, RandIt last,
+            ui32 minrun,
+            Compare comp) {
+    RandIt runEnd = current + 2;
+    while (runEnd != last &&
+            (std::distance(current, runEnd) < static_cast<int>(minrun) ||
+            isSorted(runEnd - 2, runEnd - 1, runEnd, comp))) {
+        ++runEnd;
+    }
+    ui32 runLength = runEnd - current;
+    if (comp(*std::prev(runEnd), *current))
+        for (ui32 i = 0; i < runLength / 2; ++i)
+            std::iter_swap(current + i, runEnd - i - 1);
+    insertionSort(current, runEnd);
+    return runLength;
+}
+
 template<class RandIt, class Compare>
 void timSort(RandIt first, RandIt last, Compare comp,
              const ITimSortParams& params) {
@@ -70,40 +112,10 @@ void timSort(RandIt first, RandIt last, Compare comp,
             runsStack.addRun(current, 1);
             break;
         }
-        RandIt runEnd = current + 2;
-        while (runEnd != last &&
-               (std::distance(current, runEnd) < static_cast<int>(minrun) ||
-                isSorted(runEnd - 2, runEnd - 1, runEnd, comp))) {
-            ++runEnd;
-        }
-        ui32 runLength = runEnd - current;
-        if (comp(*std::prev(runEnd), *current))
-            for (ui32 i = 0; i < runLength / 2; ++i)
-                std::iter_swap(current + i, runEnd - i - 1);
-        insertionSort(current, runEnd);
+        ui32 runLength = newRun(current, last, minrun, comp);
         runsStack.addRun(current, runLength);
-        current = runEnd;
-        while (runsStack.size() > 2) {
-            bool stop = false;
-            switch (params.whatMerge(runsStack.lenX(),
-                                     runsStack.lenY(),
-                                     runsStack.lenZ())) {
-            case WM_MergeXY:
-                runsStack.mergeXY();
-                break;
-            case WM_MergeYZ:
-                runsStack.mergeYZ();
-                break;
-            case WM_NoMerge:
-                stop = true;
-                break;
-            }
-            if (stop)
-                break;
-        }
-        if (runsStack.size() == 2 && params.needMerge(runsStack.lenX(),
-                                                      runsStack.lenY()))
-            runsStack.mergeXY();
+        current += runLength;
+        contractStack(runsStack, params);
     }
     while (runsStack.size() > 1)
         runsStack.mergeXY();
