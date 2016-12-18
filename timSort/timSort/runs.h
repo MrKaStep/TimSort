@@ -23,9 +23,9 @@ public:
 
 template<class RandIt, class Compare>
 RunsStack<RandIt, Compare>::RunsStack(Compare _comp) :
-        comp(_comp),
-        runs(),
-        last() {}
+    comp(_comp),
+    runs(),
+    last() {}
 template<class RandIt, class Compare>
 void RunsStack<RandIt, Compare>::addRun(RandIt first, ui32 length) {
     runs.emplace_back(first, length);
@@ -46,7 +46,7 @@ void RunsStack<RandIt, Compare>::mergeYZ() {
     assert(runs.size() > 2);
     inplaceMerge(runs[runs.size() - 3].first,
                  runs[runs.size() - 2].first,
-                 last,
+                 runs[runs.size() - 1].first,
                  comp);
     runs[runs.size() - 3].second += runs[runs.size() - 2].second;
     runs.erase(runs.end() - 2, runs.end() - 1);

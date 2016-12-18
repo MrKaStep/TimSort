@@ -53,7 +53,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last,
 template<class BidirIt>
 void selectionSort(BidirIt first, BidirIt last) {
     selectionSort(first, last,
-                  std::less<std::iterator_traits<BidirIt>::value_type>());
+                  std::less<typename std::iterator_traits<BidirIt>::value_type>());
 }
 template<class BidirIt, class Compare>
 void selectionSort(BidirIt first, BidirIt last, Compare comp) {
@@ -145,18 +145,12 @@ template<class RandIt, class Compare>
 void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
                      Compare comp) {
     ui32 segmentsCount = (last - first) / length;
-    if (std::distance(first, middle) >= static_cast<int>(length * segmentsCount))
+    if (std::distance(first, middle) > static_cast<int>(length * segmentsCount))
         return;
     RandIt middleSegmentBegin = first + length * ((middle - first) / length);
     RandIt lastSegmentBegin = first + length * (segmentsCount - 1);
     swapSegments(middleSegmentBegin, lastSegmentBegin, length);
     sortSegments(first, lastSegmentBegin, length, comp);
-}
-
-template<class RandIt>
-void inplaceMerge(RandIt first, RandIt middle, RandIt last) {
-    inplaceMerge(first, middle, last,
-                 std::less<typename std::iterator_traits<RandIt>::value_type>());
 }
 
 template<class RandIt, class Compare>
@@ -194,7 +188,11 @@ void handleBadSegment(RandIt first, RandIt last,
     selectionSort(badSegmentBegin, last, comp);
 }
 
-
+template<class RandIt>
+void inplaceMerge(RandIt first, RandIt middle, RandIt last) {
+    inplaceMerge(first, middle, last,
+                 std::less<typename std::iterator_traits<RandIt>::value_type>());
+}
 template<class RandIt, class Compare>
 void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     if (last - first < 17) {
@@ -210,9 +208,7 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
     ui32 segmentsCount = totalLength / segmentLength;
 
     if (std::distance(first, middle) < static_cast<int>(segmentLength * segmentsCount)) {
-        handleNormalSegments(first, middle, last,
-                             segmentLength, segmentsCount,
-                             comp);
+        handleNormalSegments(first, middle, last, segmentLength, segmentsCount, comp);
     }
     handleBadSegment(first, last, segmentLength, totalLength, comp);
     return;
