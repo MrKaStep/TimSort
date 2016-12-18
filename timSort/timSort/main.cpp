@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include <time.h>
+#include <random>
 
 #include "inplaceMerge.h"
 #include "timsort.h"
@@ -20,9 +21,12 @@
 int *arr1, *arr2;
 
 int main() {
-    arr1 = new int[100000];
-    arr2 = new int[100000];
-
-
+    const int N = 10000;
+    int a[N];
+    for (ui32 i = 0; i < N; ++i)
+        a[i] = rand();
+    timSort(a, a + N);
+    assert(std::is_sorted(a, a + N));
+    system("pause");
     return 0;
 }

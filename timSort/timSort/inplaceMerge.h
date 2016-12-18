@@ -142,7 +142,7 @@ template<class RandIt, class Compare>
 void reorderSegments(RandIt first, RandIt middle, RandIt last, ui32 length,
                      Compare comp) {
     ui32 segmentsCount = (last - first) / length;
-    if (std::distance(first, middle) <= static_cast<int>(length * segmentsCount))
+    if (std::distance(first, middle) >= static_cast<int>(length * segmentsCount))
         return;
     RandIt middleSegmentBegin = first + length * ((middle - first) / length);
     RandIt lastSegmentBegin = first + length * (segmentsCount - 1);
@@ -155,31 +155,25 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last) {
     inplaceMerge(first, middle, last,
                  std::less<typename std::iterator_traits<RandIt>::value_type>());
 }
+
 template<class RandIt, class Compare>
-void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
-    if (last - first < 17) {
-        selectionSort(first, last, comp);
-        return;
-    }
-    ui32 totalLength = last - first;
-    ui32 leftLength = middle - first;
-    ui32 rightLength = last - middle;
-    ui32 segmentLength = 0;
-    while ((segmentLength + 1) * (segmentLength + 1) <= totalLength)
-        ++segmentLength;
-    ui32 segmentsCount = totalLength / segmentLength;
+void handleNormalSegments(RandIt first, RandIt middle, RandIt last,
+                          ui32 segmentLength, ui32 segmentsCount,
+                          Compare comp) {
+    reorderSegments(first, middle, last, segmentLength, comp);
+    RandIt lastSegmentBegin = first + segmentLength * (segmentsCount - 1);
+    for (ui32 i = 0; i + 2 < segmentsCount; ++i)
+        merge(first + segmentLength * i,
+                first + segmentLength * (i + 1),
+                first + segmentLength * (i + 2),
+                lastSegmentBegin,
+                comp);
+}
 
-    if (std::distance(first, middle) < static_cast<int>(segmentLength * segmentsCount)) {
-        reorderSegments(first, middle, last, segmentLength, comp);
-        RandIt lastSegmentBegin = first + segmentLength * (segmentsCount - 1);
-        for (ui32 i = 0; i + 2 < segmentsCount; ++i)
-            merge(first + segmentLength * i,
-                  first + segmentLength * (i + 1),
-                  first + segmentLength * (i + 2),
-                  lastSegmentBegin,
-                  comp);
-
-    }
+template<class RandIt, class Compare>
+void handleBadSegment(RandIt first, RandIt last,
+                      ui32 segmentLength, ui32 totalLength,
+                      Compare comp){
     ui32 badSegmentLength = segmentLength + totalLength % segmentLength;
     RandIt badSegmentBegin = last - badSegmentLength;
     selectionSort(last - 2 * badSegmentLength, last, comp);
@@ -195,5 +189,28 @@ void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
         toMerge = mergeFirst;
     }
     selectionSort(badSegmentBegin, last, comp);
+}
+
+
+template<class RandIt, class Compare>
+void inplaceMerge(RandIt first, RandIt middle, RandIt last, Compare comp) {
+    if (last - first < 17) {
+        selectionSort(first, last, comp);
+        return;
+    }
+    ui32 totalLength = last - first;
+    ui32 leftLength = middle - first;
+    ui32 rightLength = last - middle;
+    ui32 segmentLength = 0;
+    while ((segmentLength + 1) * (segmentLength + 1) <= totalLength)
+        ++segmentLength;
+    ui32 segmentsCount = totalLength / segmentLength;
+
+    if (std::distance(first, middle) < static_cast<int>(segmentLength * segmentsCount)) {
+        handleNormalSegments(first, middle, last,
+                             segmentLength, segmentsCount,
+                             comp);
+    }
+    handleBadSegment(first, last, segmentLength, totalLength, comp);
     return;
 }
